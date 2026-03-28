@@ -1,0 +1,5 @@
+weight: 0.0
+name: 'Análisis estático con clang-tidy'
+message: 'Revisa diagnósticos del compilador y del analizador estático Clang'
+show_output: true
+required_files: []

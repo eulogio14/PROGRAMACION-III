@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+TIMEOUT=30
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TESTS_DIR="$(dirname "$SCRIPT_DIR")"
+AUTOGRADER_DIR="$(dirname "$TESTS_DIR")"
+ROOT_DIR="$(dirname "$AUTOGRADER_DIR")"
+SRC_DIR="${ROOT_DIR}/src"
+LOG_FILE="${SCRIPT_DIR}/clang-tidy.log"
+
+: > "$LOG_FILE"
+
+log() {
+    echo "$@" | tee -a "$LOG_FILE"
+}
+
+if ! command -v clang-tidy >/dev/null 2>&1; then
+    log "Error: clang-tidy no esta instalado"
+    exit 1
+fi
+
+FILES=(
+    "${SCRIPT_DIR}/clang_tidy.cpp"
+    "${SRC_DIR}/drone_system.cpp"
+)
+
+EXIT_CODE=0
+for fullpath in "${FILES[@]}"; do
+    if [[ ! -f "$fullpath" ]]; then
+        log "Warning: archivo no encontrado - $fullpath"
+        EXIT_CODE=1
+        continue
+    fi
+
+    log "Analizando $(basename "$fullpath") con clang-tidy..."
+    if ! timeout "$TIMEOUT" clang-tidy "$fullpath" \
+        --quiet \
+        --config='{
+            Checks: "clang-diagnostic-*,clang-analyzer-*",
+            WarningsAsErrors: "*"
+        }' \
+        -- \
+        -std=c++23 \
+        -I"${SRC_DIR}" 2>&1 | tee -a "$LOG_FILE"; then
+        if [[ "${PIPESTATUS[0]}" -eq 124 ]]; then
+            log "Timeout excedido al analizar $(basename "$fullpath")"
+        fi
+        EXIT_CODE=1
+    fi
+done
+
+if [[ "$EXIT_CODE" -eq 0 ]]; then
+    log "Clang-Tidy: todos los checks pasaron"
+else
+    log "Clang-Tidy: se encontraron problemas"
+fi
+
+gzip -f "$LOG_FILE"
+
+exit "$EXIT_CODE"

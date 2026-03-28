@@ -1,0 +1,5 @@
+weight: 0.0
+name: 'Analisis estatico con cppcheck'
+message: 'Resume observaciones de cppcheck sobre estilo, portabilidad y errores potenciales'
+show_output: true
+required_files: []
