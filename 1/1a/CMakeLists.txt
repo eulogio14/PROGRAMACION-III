@@ -5,4 +5,5 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(1a main.cpp
         VectorND.cpp
-        VectorND.h)
+        VectorND.h
+)
