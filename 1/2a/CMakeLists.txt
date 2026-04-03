@@ -5,4 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_executable(2a main.cpp
         Mat2D.cpp
-        Mat2D.h)
+        Mat2D.h
+        VectorND.cpp
+        VectorND.h)
